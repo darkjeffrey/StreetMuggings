@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Street Muggings"/>
+  <Name value="Mind Your Purse - Street Mugging"/>
   <Id value="StreetMuggings"/>
   <Version value="v1.1.0"/>
   <SingleplayerModule value="true"/>

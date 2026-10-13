@@ -4,11 +4,11 @@ using MCM.Abstractions.Base.Global;
 
 namespace StreetMuggings
 {
-    /// <summary>The "Street Muggings" page in Mod Options (MCM). Saved to Documents\Mount and Blade II Bannerlord\Configs\ModSettings.</summary>
+    /// <summary>The "Mind Your Purse - Street Mugging" page in Mod Options (MCM). Saved to Documents\Mount and Blade II Bannerlord\Configs\ModSettings.</summary>
     public sealed class StreetMuggingsMcmSettings : AttributeGlobalSettings<StreetMuggingsMcmSettings>
     {
         public override string Id => "StreetMuggings";
-        public override string DisplayName => "Street Muggings";
+        public override string DisplayName => "Mind Your Purse - Street Mugging";
         public override string FolderName => "StreetMuggings";
         public override string FormatType => "json2";
 

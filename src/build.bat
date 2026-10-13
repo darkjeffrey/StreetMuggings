@@ -1,10 +1,10 @@
 @echo off
 setlocal
-rem Builds Street Muggings (Release) and installs it into the Bannerlord Modules folder.
+rem Builds Mind Your Purse - Street Mugging (Release) and installs it into the Bannerlord Modules folder.
 rem Double-click it, or run it from any folder: it always builds the project next to this file.
 
 cd /d "%~dp0"
-echo Building Street Muggings...
+echo Building Mind Your Purse - Street Mugging...
 echo.
 
 dotnet build -c Release

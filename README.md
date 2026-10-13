@@ -1,4 +1,4 @@
-# Street Muggings
+# Mind Your Purse - Street Mugging
 
 A Mount & Blade II: Bannerlord mod that brings back the town muggings from Warband.
 
@@ -31,7 +31,7 @@ These are all available on Nexus Mods and the Steam Workshop:
 - UIExtenderEx
 - Mod Configuration Menu (MCM) v5
 
-In the launcher, load Street Muggings after all of these.
+In the launcher, load Mind Your Purse - Street Mugging after all of these.
 
 ## Building from source
 You need the [.NET SDK](https://dotnet.microsoft.com/download) (any recent version) and Bannerlord installed with the mods above.
@@ -45,9 +45,9 @@ The build copies `StreetMuggings.dll` and `SubModule.xml` into
 `<Bannerlord>\Modules\StreetMuggings`. If Bannerlord isn't in the default Steam folder, run:
 `dotnet build -c Release /p:GameFolder="D:\path\to\Mount & Blade II Bannerlord"`
 
-Enable **Street Muggings** in the launcher, below Harmony, ButterLib, UIExtenderEx and MCM.
+Enable **Mind Your Purse - Street Mugging** in the launcher, below Harmony, ButterLib, UIExtenderEx and MCM.
 
-## Settings (Mod Options > Street Muggings)
+## Settings (Mod Options > Mind Your Purse - Street Mugging)
 - **General**: turn the mod or each trigger (trade, tavern, night walks) on or off, and allow daytime muggings (off by default).
 - **Mugging Rate**: an overall rate multiplier, the base and maximum chance, day/night/walk multipliers, the gang-leader relation multipliers (at -100 and +100), the per-town cooldown and the minimum gold you must carry.
 - **Night Walks**: the earliest and latest ambush time, the no-guards and per-guard multipliers, and the guard counting radius.
