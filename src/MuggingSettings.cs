@@ -69,5 +69,11 @@ namespace StreetMuggings
 
         /// <summary>Print the town's stats, the computed chance and the roll each time an action is checked.</summary>
         public static bool DebugMessages = false;
+
+        /// <summary>Photo mode for screenshots: every eligible action springs a staged group shot instead of a mugging.
+        /// Five burly thugs line up in a half-circle behind you, all facing the same way as you, weapons away, and hold
+        /// still. No pay-or-fight prompt; leave the scene to end it. Implies AlwaysMug. Trade or the tavern district
+        /// work best (night walks still wait for their random delay).</summary>
+        public static bool PoseMode = false;
     }
 }

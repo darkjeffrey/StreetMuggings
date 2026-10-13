@@ -25,7 +25,7 @@ namespace StreetMuggings
     /// </summary>
     public class MuggingMissionLogic : MissionLogic
     {
-        private enum State { Placing, Waiting, Presenting, Confronting, Fighting, Leaving, Done }
+        private enum State { Placing, Waiting, Presenting, Confronting, Fighting, Leaving, Posing, Done }
 
         private readonly MuggingContext _ctx;
         private State _state = State.Placing;
@@ -59,6 +59,7 @@ namespace StreetMuggings
                 return;
             }
             if (_state == State.Leaving) { TickLeaving(dt); return; }
+            if (_state == State.Posing) { TickPose(dt); return; }
             if (_state == State.Confronting || _state == State.Done) return;
 
             Agent main = Agent.Main;
@@ -260,6 +261,8 @@ namespace StreetMuggings
         {
             MissionAgentHandler agentHandler = Mission.GetMissionBehavior<MissionAgentHandler>();
             if (agentHandler == null) { _state = State.Done; return; }
+
+            if (MuggingSettings.PoseMode) { SpringPose(agentHandler, main); return; }
 
             List<Vec3> spots = FindSpawnSpots(around, _ctx.Thugs.Count, 5f, 11f, 3.5f);
             for (int i = 0; i < _ctx.Thugs.Count && i < spots.Count; i++)
@@ -478,7 +481,7 @@ namespace StreetMuggings
             MBInformationManager.AddQuickInformation(shout, 0, opponents[0].Character, null, "");
         }
 
-        private Agent SpawnThug(MissionAgentHandler agentHandler, CharacterObject character, Vec3 position, Vec3 lookAt)
+        private Agent SpawnThug(MissionAgentHandler agentHandler, CharacterObject character, Vec3 position, Vec3 lookAt, bool burly = false)
         {
             Campaign.Current.Models.AgeModel.GetAgeLimitForLocation(character, out int minAge, out int maxAge, "AlleyGangMember");
             if (maxAge <= minAge) { minAge = 20; maxAge = 45; }
@@ -494,8 +497,13 @@ namespace StreetMuggings
             if (outfit != null)
             {
                 if (MuggingSettings.HoodedThugs) ThugOutfits.PutOnHood(outfit, _ctx.Settlement?.Town?.Culture?.StringId);
-                data = data.Equipment(outfit)
-                           .BodyProperties(character.GetBodyProperties(outfit, MBRandom.RandomInt(1, int.MaxValue)));
+                BodyProperties body = character.GetBodyProperties(outfit, MBRandom.RandomInt(1, int.MaxValue));
+                if (burly)
+                {
+                    // Pose mode: the biggest, broadest build the face generator allows.
+                    body = new BodyProperties(new DynamicBodyProperties(body.DynamicProperties.Age, 0.65f, 1f), body.StaticProperties);
+                }
+                data = data.Equipment(outfit).BodyProperties(body);
             }
             data = data.Age(MBRandom.RandomInt(minAge, maxAge));
 
@@ -625,6 +633,136 @@ namespace StreetMuggings
                 if (!Campaign.Current.IsMainHeroDisguised)
                     Campaign.Current.GameMenuManager.SetNextMenu("settlement_player_unconscious");
             }
+        }
+
+        // ---------------- Pose mode (debug, see MuggingSettings.PoseMode) ----------------
+        // Stages a group shot instead of a mugging: the gang lines up in a tight half-circle behind the player,
+        // everyone facing the same way, weapons away, and holds still for as long as you like.
+
+        private const int PoseGangSize = 5;
+        private const float PoseRadius = 1.3f;        // how far behind the player the arc sits
+        private const float PoseArcDegrees = 80f;     // each end of the arc, measured from straight behind
+        private const float PoseReformDistance = 1.5f;
+
+        private readonly Dictionary<Agent, Vec3> _poseSpots = new Dictionary<Agent, Vec3>();
+        private Vec3 _poseAnchor = Vec3.Invalid;
+        private Vec3 _poseForward = Vec3.Forward;
+        private Vec3 _poseLastPlayerPos = Vec3.Invalid;
+        private float _poseTimer;
+
+        private void SpringPose(MissionAgentHandler agentHandler, Agent main)
+        {
+            if (_ctx.Thugs.Count == 0) { _state = State.Done; return; }
+            Vec3 forward = Flat(main.LookDirection);
+            List<Vec3> spots = PoseSpots(main.Position, forward);
+
+            Team friendly = Mission.PlayerAllyTeam;
+            for (int i = 0; i < spots.Count; i++)
+            {
+                CharacterObject character = _ctx.Thugs[i % _ctx.Thugs.Count];
+                Agent thug = SpawnThug(agentHandler, character, spots[i], spots[i] + forward, true);
+                if (thug == null) continue;
+
+                thug.SetLookAgent(null);
+                thug.TryToSheathWeaponInHand(Agent.HandIndex.MainHand, Agent.WeaponWieldActionType.Instant);
+                thug.TryToSheathWeaponInHand(Agent.HandIndex.OffHand, Agent.WeaponWieldActionType.Instant);
+                if (friendly != null) thug.SetTeam(friendly, true);
+                MakeDocile(thug);
+
+                _thugAgents.Add(thug);
+                _poseSpots[thug] = spots[i];
+            }
+
+            if (_thugAgents.Count == 0) { _state = State.Done; return; }
+
+            _poseAnchor = main.Position;
+            _poseForward = forward;
+            _poseLastPlayerPos = main.Position;
+            _poseTimer = 0f;
+            _state = State.Posing;
+
+            InformationManager.DisplayMessage(new InformationMessage(
+                "[StreetMuggings] Pose mode: face away from the gang. To turn the whole group, walk a couple of steps the way you want to face and stop; they re-form behind you.",
+                Colors.Gray));
+        }
+
+        /// <summary>Spots on a half-circle behind the player, pulled in toward the player if a wall is in the way.</summary>
+        private List<Vec3> PoseSpots(Vec3 center, Vec3 forward)
+        {
+            var spots = new List<Vec3>();
+            Vec3 back = -forward;
+            Vec3 side = Vec3.CrossProduct(forward, Vec3.Up).NormalizedCopy();
+            Scene scene = Mission.Scene;
+
+            for (int i = 0; i < PoseGangSize; i++)
+            {
+                float t = PoseGangSize == 1 ? 0.5f : i / (float)(PoseGangSize - 1);
+                float angle = (t * 2f - 1f) * PoseArcDegrees * (float)Math.PI / 180f;
+                // The middle man stands a touch farther back so heads don't line up perfectly.
+                float radius = PoseRadius + (Math.Abs(angle) < 0.3f ? 0.25f : 0f);
+                Vec3 offset = back * ((float)Math.Cos(angle) * radius) + side * ((float)Math.Sin(angle) * radius);
+
+                Vec3 chosen = Vec3.Invalid;
+                for (float pull = 1f; pull >= 0.4f; pull -= 0.15f)
+                {
+                    Vec3 p = center + offset * pull;
+                    var face = PathFaceRecord.NullFaceRecord;
+                    scene.GetNavMeshFaceIndex(ref face, p, true);
+                    if (face.IsValid()) { chosen = p; break; }
+                }
+                if (chosen.IsValid) spots.Add(chosen);
+            }
+            return spots;
+        }
+
+        private void TickPose(float dt)
+        {
+            _poseTimer -= dt;
+            if (_poseTimer > 0f) return;
+            _poseTimer = 0.5f;
+
+            _thugAgents.RemoveAll(a => a == null || !a.IsActive());
+            if (_thugAgents.Count == 0) { _state = State.Done; return; }
+
+            Agent main = Agent.Main;
+            if (main != null && main.IsActive())
+            {
+                // The player walked somewhere and stopped: re-form behind them, facing the way they walked.
+                bool stopped = main.Position.Distance(_poseLastPlayerPos) < 0.05f;
+                if (stopped && main.Position.Distance(_poseAnchor) > PoseReformDistance)
+                {
+                    Vec3 walked = Flat(main.Position - _poseAnchor);
+                    _poseAnchor = main.Position;
+                    _poseForward = walked;
+                    List<Vec3> spots = PoseSpots(_poseAnchor, _poseForward);
+                    for (int i = 0; i < _thugAgents.Count; i++)
+                        _poseSpots[_thugAgents[i]] = i < spots.Count ? spots[i] : _thugAgents[i].Position;
+                }
+                _poseLastPlayerPos = main.Position;
+            }
+
+            float rotation = _poseForward.AsVec2.RotationInRadians;
+            foreach (Agent thug in _thugAgents)
+            {
+                if (!_poseSpots.TryGetValue(thug, out Vec3 spot)) continue;
+                try
+                {
+                    MakeDocile(thug);
+                    var worldPos = new WorldPosition(Mission.Scene, spot);
+                    AgentNavigator navigator = thug.GetComponent<CampaignAgentComponent>()?.AgentNavigator;
+                    if (navigator != null)
+                        navigator.SetTargetFrame(worldPos, rotation, 0.2f, 0.1f, Agent.AIScriptedFrameFlags.NoAttack, true);
+                    else
+                        thug.SetScriptedPositionAndDirection(ref worldPos, rotation, false, Agent.AIScriptedFrameFlags.NoAttack);
+                }
+                catch (Exception) { /* a thug that won't hold still just spoils the shot */ }
+            }
+        }
+
+        private static Vec3 Flat(Vec3 v)
+        {
+            v.z = 0f;
+            return v.LengthSquared > 0.0001f ? v.NormalizedCopy() : Vec3.Forward;
         }
     }
 }

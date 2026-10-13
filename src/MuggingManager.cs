@@ -39,7 +39,7 @@ namespace StreetMuggings
                 bool isNight = CampaignTime.Now.IsNightTime;
                 if (!IsEligible(settlement, trigger, isNight)) return true;
 
-                bool forced = MuggingSettings.AlwaysMug;
+                bool forced = MuggingSettings.AlwaysMug || MuggingSettings.PoseMode;
 
                 if (trigger == MuggingTrigger.NightStroll)
                 {
@@ -112,7 +112,7 @@ namespace StreetMuggings
             }
 
             // Testing switch: skip the time-of-day, purse and cooldown rules.
-            if (MuggingSettings.AlwaysMug) return true;
+            if (MuggingSettings.AlwaysMug || MuggingSettings.PoseMode) return true;
 
             if (!isNight && (trigger == MuggingTrigger.NightStroll || !MuggingSettings.AllowDaytimeMuggings)) return false;
             if (Hero.MainHero.Gold < MuggingSettings.MinGold) return false;

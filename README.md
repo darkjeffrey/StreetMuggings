@@ -56,9 +56,10 @@ Enable **Mind Your Purse - Street Mugging** in the launcher, below Harmony, Butt
 Changes apply immediately. They're saved by MCM under `Documents\Mount and Blade II Bannerlord\Configs\ModSettings\StreetMuggings`.
 
 ## Testing switches
-Two debug switches live at the bottom of `src/MuggingSettings.cs`. They're not in the mod menu.
+Three debug switches live at the bottom of `src/MuggingSettings.cs`. They're not in the mod menu.
 - `AlwaysMug`: every eligible action triggers a mugging, day or night, ignoring chance, cooldown and minimum gold.
 - `DebugMessages`: prints each roll, with town security, prosperity, gang relations, guard count and the final chance.
+- `PoseMode`: for screenshots. Instead of a mugging, five burly thugs line up in a half-circle behind you, all facing the same way you are, weapons away, and hold still. Walk a couple of steps and stop to turn the whole group. Leave the scene to end it.
 
 Set either to `true` and rebuild to test. Set them back to `false` before a release.
 
