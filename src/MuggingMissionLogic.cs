@@ -90,7 +90,7 @@ namespace StreetMuggings
                     catch (Exception e)
                     {
                         _state = State.Done;
-                        InformationManager.DisplayMessage(new InformationMessage("[StreetMuggings] ambush failed: " + e.Message, Colors.Red));
+                        InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=SM_ErrAmbush}[StreetMuggings] ambush failed: {ERROR}").SetTextVariable("ERROR", e.Message).ToString(), Colors.Red));
                     }
                     return;
                 }
@@ -126,7 +126,7 @@ namespace StreetMuggings
             catch (Exception e)
             {
                 _state = State.Done;
-                InformationManager.DisplayMessage(new InformationMessage("[StreetMuggings] ambush failed: " + e.Message, Colors.Red));
+                InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=SM_ErrAmbush}[StreetMuggings] ambush failed: {ERROR}").SetTextVariable("ERROR", e.Message).ToString(), Colors.Red));
             }
         }
 
@@ -172,7 +172,15 @@ namespace StreetMuggings
             if (MuggingSettings.DebugMessages)
             {
                 InformationManager.DisplayMessage(new InformationMessage(
-                    $"[StreetMuggings] Street roll: {guards} guard(s) within {MuggingSettings.GuardCountRadius:0} m (x{factor:0.00}), chance {chance:P1}{(_ctx.Forced ? " (always mug)" : "")}, roll {roll:0.000} -> {(hit ? "mugged" : "safe")}",
+                    new TextObject("{=SM_DbgStreet}[StreetMuggings] Street roll: {GUARDS} guard(s) within {RADIUS} m (x{FACTOR}), chance {CHANCE}{FORCED}, roll {ROLL} -> {RESULT}")
+                        .SetTextVariable("GUARDS", guards)
+                        .SetTextVariable("RADIUS", MuggingSettings.GuardCountRadius.ToString("0"))
+                        .SetTextVariable("FACTOR", factor.ToString("0.00"))
+                        .SetTextVariable("CHANCE", chance.ToString("P1"))
+                        .SetTextVariable("FORCED", _ctx.Forced ? new TextObject("{=SM_DbgForced} (always mug)").ToString() : "")
+                        .SetTextVariable("ROLL", roll.ToString("0.000"))
+                        .SetTextVariable("RESULT", (hit ? new TextObject("{=SM_DbgMugged}mugged") : new TextObject("{=SM_DbgSafe}safe")).ToString())
+                        .ToString(),
                     Colors.Gray));
             }
             return hit;
@@ -598,7 +606,7 @@ namespace StreetMuggings
             }
             catch (Exception e)
             {
-                InformationManager.DisplayMessage(new InformationMessage("[StreetMuggings] " + e.Message, Colors.Red));
+                InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=SM_ErrRaw}[StreetMuggings] {ERROR}").SetTextVariable("ERROR", e.Message).ToString(), Colors.Red));
             }
         }
 
@@ -682,7 +690,7 @@ namespace StreetMuggings
             _state = State.Posing;
 
             InformationManager.DisplayMessage(new InformationMessage(
-                "[StreetMuggings] Pose mode: face away from the gang. To turn the whole group, walk a couple of steps the way you want to face and stop; they re-form behind you.",
+                new TextObject("{=SM_PoseHint}Pose mode: face away from the gang. To turn the whole group, walk a couple of steps the way you want to face and stop; they re-form behind you.").ToString(),
                 Colors.Gray));
         }
 

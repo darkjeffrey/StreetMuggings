@@ -105,13 +105,26 @@ namespace StreetMuggings
         public static float LossFraction(float difficulty)
             => MuggingSettings.MinLossPercent + (MuggingSettings.MaxLossPercent - MuggingSettings.MinLossPercent) * Clamp01(difficulty);
 
+        /// <summary>The gold the player actually has on them in the streets: their whole purse, or at most the
+        /// "Gold carried on your person" setting (the rest is assumed to be safe with the party).</summary>
+        public static int PurseOnPerson
+        {
+            get
+            {
+                int gold = Math.Max(0, Hero.MainHero.Gold);
+                int cap = MuggingSettings.PurseCap;
+                return cap > 0 ? Math.Min(gold, cap) : gold;
+            }
+        }
+
         public static int GoldLostOnDefeat(float difficulty)
-            => (int)Math.Round(Hero.MainHero.Gold * LossFraction(difficulty));
+            => (int)Math.Round(PurseOnPerson * LossFraction(difficulty));
 
         public static int PayOffAmount(float difficulty)
         {
-            int amount = (int)Math.Round(Hero.MainHero.Gold * LossFraction(difficulty) * MuggingSettings.PayOffFactor);
-            return Math.Min(Hero.MainHero.Gold, Math.Max(10, amount));
+            int purse = PurseOnPerson;
+            int amount = (int)Math.Round(purse * LossFraction(difficulty) * MuggingSettings.PayOffFactor);
+            return Math.Min(purse, Math.Max(10, amount));
         }
 
         public static MuggingContext Build(Settlement settlement, MuggingTrigger trigger)

@@ -44,6 +44,10 @@
     <MakeDir Directories="$(ModuleBin)" />
     <Copy SourceFiles="$(TargetDir)$(AssemblyName).dll;$(TargetDir)$(AssemblyName).pdb" DestinationFolder="$(ModuleBin)" SkipUnchangedFiles="true" ContinueOnError="true" />
     <Copy SourceFiles="..\Module\SubModule.xml" DestinationFolder="$(GameFolder)\Modules\$(ModuleName)" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <ModuleDataFiles Include="..\Module\ModuleData\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModuleDataFiles)" DestinationFiles="@(ModuleDataFiles->'$(GameFolder)\Modules\$(ModuleName)\ModuleData\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

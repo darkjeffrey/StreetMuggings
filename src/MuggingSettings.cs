@@ -45,6 +45,7 @@ namespace StreetMuggings
         public static float PerGuardMultiplier => Math.Max(0f, Math.Min(1f, S.PerGuardMultiplier));
         public static float GuardCountRadius => Math.Max(1f, S.GuardCountRadius);
         public static int MinGold => Math.Max(0, S.MinGold);
+        public static int PurseCap => Math.Max(0, S.PurseCap);
 
         public static int MinThugs => Math.Max(1, Math.Min(S.MinThugs, S.MaxThugs));
         public static int MaxThugs => Math.Max(1, Math.Max(S.MinThugs, S.MaxThugs));

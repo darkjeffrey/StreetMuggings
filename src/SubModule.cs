@@ -5,6 +5,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
 namespace StreetMuggings
@@ -50,7 +51,7 @@ namespace StreetMuggings
             }
             catch (Exception e)
             {
-                InformationManager.DisplayMessage(new InformationMessage("[StreetMuggings] " + e.Message, Colors.Red));
+                InformationManager.DisplayMessage(new InformationMessage(new TextObject("{=SM_ErrRaw}[StreetMuggings] {ERROR}").SetTextVariable("ERROR", e.Message).ToString(), Colors.Red));
             }
         }
     }
