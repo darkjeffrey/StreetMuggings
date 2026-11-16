@@ -8,3 +8,6 @@ obj/
 *.user
 *.suo
 .vscode/
+
+# Packaged zips
+release/
