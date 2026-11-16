@@ -4,7 +4,7 @@ A Mount & Blade II: Bannerlord mod that brings back the town muggings from Warba
 
 One of the things I missed most from Mount & Blade: Warband was walking through a town at night and suddenly being jumped by a gang of thugs in a back alley. Bannerlord's towns felt a little too safe without it, so I made this mod to bring that danger back. Rough, rich towns are now risky places to carry a full purse, especially after dark.
 
-Built for Bannerlord **v1.4.8** (singleplayer).
+Built for Bannerlord **v1.5.7** (singleplayer).
 
 ## Features
 Muggings only happen **at night** by default. Turn on *Allow daytime muggings* in the settings to make Trade and the tavern district risky by day too; town walks are always night-only.
